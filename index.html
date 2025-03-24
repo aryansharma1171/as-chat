@@ -91,42 +91,7 @@
             margin-bottom: 10px;
         }
 
-        /* Chat Box (Now properly scrollable) */
-        .chat-box {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            background: #101d25;
-            border: 2px solid #25D366;
-            border-radius: 10px;
-            max-height: calc(100vh - 150px);
-        }
-
-        .message {
-            max-width: 75%;
-            padding: 10px;
-            border-radius: 10px;
-            margin: 5px;
-            word-wrap: break-word;
-            font-size: 16px;
-            display: inline-block;
-        }
-        .my-message {
-            background: #25D366;
-            color: black;
-            align-self: flex-end;
-            text-align: right;
-            border-bottom-right-radius: 0;
-        }
-        .other-message {
-            background: #262d31;
-            align-self: flex-start;
-            border-bottom-left-radius: 0;
-        }
-
-        /* Message Input Box */
+        /* Input Box (Now placed after Chat ID) */
         .input-container {
             display: flex;
             padding: 10px;
@@ -135,10 +100,7 @@
             width: 100%;
             box-sizing: border-box;
             align-items: center;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            margin-bottom: 10px;
         }
         .input-container textarea {
             flex: 1;
@@ -165,10 +127,45 @@
             font-size: 18px;
         }
 
-        /* Ensure scrolling works on mobile */
+        /* Chat Box (Scrollable) */
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            background: #101d25;
+            border: 2px solid #25D366;
+            border-radius: 10px;
+            height: 100%;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 5px;
+            word-wrap: break-word;
+            font-size: 16px;
+            display: inline-block;
+        }
+        .my-message {
+            background: #25D366;
+            color: black;
+            align-self: flex-end;
+            text-align: right;
+            border-bottom-right-radius: 0;
+        }
+        .other-message {
+            background: #262d31;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+
+        /* Mobile Fix */
         @media (max-width: 768px) {
             .chat-box {
-                max-height: calc(100vh - 160px);
+                max-height: calc(100vh - 220px);
             }
         }
     </style>
@@ -194,12 +191,14 @@
             <strong>Chat ID:</strong> <span id="current-chat-id">Generating...</span>
         </div>
 
-        <div class="chat-box" id="chat-box"></div>
-
+        <!-- Message Input Box (Now Right After Chat ID) -->
         <div class="input-container">
             <textarea id="message" placeholder="Type a message..."></textarea>
             <button onclick="sendMessage()">➤</button>
         </div>
+
+        <!-- Scrollable Chat Messages -->
+        <div class="chat-box" id="chat-box"></div>
     </div>
 
     <script>
@@ -268,13 +267,6 @@
         function scrollToBottom() {
             const chatBox = document.getElementById("chat-box");
             chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        function showNotification(message) {
-            const box = document.getElementById("notification-box");
-            box.innerText = message;
-            box.style.display = "block";
-            setTimeout(() => { box.style.display = "none"; }, 3000);
         }
     </script>
 
