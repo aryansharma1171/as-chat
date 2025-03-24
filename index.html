@@ -32,6 +32,16 @@
             font-weight: bold;
         }
 
+        /* Notification Bar */
+        .notification {
+            background: #ff9800;
+            color: black;
+            padding: 10px;
+            text-align: center;
+            display: none;
+            font-size: 14px;
+        }
+
         /* Welcome Screen */
         .container {
             display: flex;
@@ -78,55 +88,19 @@
             text-align: center;
             font-size: 16px;
             border-radius: 5px;
+            margin-bottom: 10px;
         }
 
-        /* Chat Box */
-        .chat-box {
-            flex: 1;
-            height: 65vh;
-            overflow-y: auto;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            background: #101d25;
-            border: 2px solid #25D366;
-            border-radius: 10px;
-            margin: 10px 0;
-        }
-
-        .message {
-            max-width: 75%;
-            padding: 10px;
-            border-radius: 10px;
-            margin: 5px;
-            word-wrap: break-word;
-            font-size: 16px;
-            display: inline-block;
-        }
-        .my-message {
-            background: #25D366;
-            color: black;
-            align-self: flex-end;
-            text-align: right;
-            border-bottom-right-radius: 0;
-        }
-        .other-message {
-            background: #262d31;
-            align-self: flex-start;
-            border-bottom-left-radius: 0;
-        }
-
-        /* Input Area (Now Works with Android Keyboard) */
+        /* Message Input Box (Now placed after Chat ID) */
         .input-container {
             display: flex;
             padding: 10px;
             background: #1e1e1e;
+            border-radius: 10px;
             width: 100%;
             box-sizing: border-box;
             align-items: center;
-            border-radius: 10px;
-            position: fixed;
-            bottom: 0;
+            margin-bottom: 10px;
         }
         .input-container textarea {
             flex: 1;
@@ -153,7 +127,42 @@
             font-size: 18px;
         }
 
-        /* Fix input jumping on Android keyboard */
+        /* Chat Box */
+        .chat-box {
+            flex: 1;
+            height: 65vh;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            background: #101d25;
+            border: 2px solid #25D366;
+            border-radius: 10px;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 5px;
+            word-wrap: break-word;
+            font-size: 16px;
+            display: inline-block;
+        }
+        .my-message {
+            background: #25D366;
+            color: black;
+            align-self: flex-end;
+            text-align: right;
+            border-bottom-right-radius: 0;
+        }
+        .other-message {
+            background: #262d31;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+
+        /* Responsive Fix */
         @media (max-width: 768px) {
             .input-container {
                 position: relative;
@@ -164,6 +173,7 @@
 <body>
 
     <div class="header">A.S Chat World</div>
+    <div class="notification" id="notification-box"></div>
 
     <!-- Start Screen -->
     <div class="container" id="start-container">
@@ -180,11 +190,13 @@
         <div class="chat-id-box">
             <strong>Chat ID:</strong> <span id="current-chat-id">Generating...</span>
         </div>
-        <div class="chat-box" id="chat-box"></div>
+
         <div class="input-container">
             <textarea id="message" placeholder="Type a message..."></textarea>
             <button onclick="sendMessage()">➤</button>
         </div>
+
+        <div class="chat-box" id="chat-box"></div>
     </div>
 
     <script>
@@ -193,7 +205,7 @@
 
         function createChat() {
             userName = document.getElementById("user-name").value.trim();
-            if (!userName) return alert("Please enter your name!");
+            if (!userName) return showNotification("Please enter your name!");
 
             peer = new Peer();
             peer.on('open', (id) => {
@@ -212,7 +224,7 @@
         function joinChat() {
             userName = document.getElementById("user-name").value.trim();
             chatID = document.getElementById("chat-id").value.trim();
-            if (!userName || !chatID) return alert("Enter valid name and chat ID!");
+            if (!userName || !chatID) return showNotification("Enter valid name and chat ID!");
 
             peer = new Peer();
             peer.on('open', () => {
@@ -249,13 +261,12 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // Fix for Android keyboard covering the message input
-        document.getElementById("message").addEventListener("focus", () => {
-            setTimeout(() => {
-                window.scrollTo(0, document.body.scrollHeight);
-            }, 300);
-        });
-
+        function showNotification(message) {
+            const box = document.getElementById("notification-box");
+            box.innerText = message;
+            box.style.display = "block";
+            setTimeout(() => { box.style.display = "none"; }, 3000);
+        }
     </script>
 
 </body>
