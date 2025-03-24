@@ -6,7 +6,6 @@
     <title>A.S Chat World</title>
     <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
     <style>
-        /* General Styles */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -21,8 +20,6 @@
             flex-direction: column;
             overflow: hidden;
         }
-
-        /* Header */
         .header {
             background: #075e54;
             color: white;
@@ -31,18 +28,6 @@
             font-size: 20px;
             font-weight: bold;
         }
-
-        /* Notification Bar */
-        .notification {
-            background: #ff9800;
-            color: black;
-            padding: 10px;
-            text-align: center;
-            display: none;
-            font-size: 14px;
-        }
-
-        /* Welcome Screen */
         .container {
             display: flex;
             flex-direction: column;
@@ -71,16 +56,12 @@
             font-weight: bold;
             cursor: pointer;
         }
-
-        /* Chat Screen */
         .chat-container {
             display: none;
             flex-direction: column;
             height: 100vh;
             padding: 10px;
         }
-
-        /* Chat ID Box */
         .chat-id-box {
             background: #128C7E;
             padding: 10px;
@@ -90,8 +71,6 @@
             border-radius: 5px;
             margin-bottom: 10px;
         }
-
-        /* Input Box (Now placed after Chat ID) */
         .input-container {
             display: flex;
             padding: 10px;
@@ -126,8 +105,6 @@
             border-radius: 50%;
             font-size: 18px;
         }
-
-        /* Chat Box (Scrollable) */
         .chat-box {
             flex: 1;
             overflow-y: auto;
@@ -138,8 +115,20 @@
             border: 2px solid #25D366;
             border-radius: 10px;
             height: 100%;
+            scrollbar-width: thin;
+            scrollbar-color: #25D366 #101d25;
+            scroll-behavior: smooth;
         }
-
+        .chat-box::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-box::-webkit-scrollbar-thumb {
+            background: #25D366;
+            border-radius: 10px;
+        }
+        .chat-box::-webkit-scrollbar-track {
+            background: #101d25;
+        }
         .message {
             max-width: 75%;
             padding: 10px;
@@ -161,8 +150,6 @@
             align-self: flex-start;
             border-bottom-left-radius: 0;
         }
-
-        /* Mobile Fix */
         @media (max-width: 768px) {
             .chat-box {
                 max-height: calc(100vh - 220px);
@@ -173,9 +160,7 @@
 <body>
 
     <div class="header">A.S Chat World</div>
-    <div class="notification" id="notification-box"></div>
 
-    <!-- Start Screen -->
     <div class="container" id="start-container">
         <h2>Enter Your Name</h2>
         <input type="text" id="user-name" placeholder="Your Name">
@@ -185,19 +170,16 @@
         <button onclick="joinChat()">Join Chat</button>
     </div>
 
-    <!-- Chat Screen -->
     <div class="chat-container" id="chat-container">
         <div class="chat-id-box">
             <strong>Chat ID:</strong> <span id="current-chat-id">Generating...</span>
         </div>
 
-        <!-- Message Input Box (Now Right After Chat ID) -->
         <div class="input-container">
             <textarea id="message" placeholder="Type a message..."></textarea>
             <button onclick="sendMessage()">➤</button>
         </div>
 
-        <!-- Scrollable Chat Messages -->
         <div class="chat-box" id="chat-box"></div>
     </div>
 
@@ -207,7 +189,7 @@
 
         function createChat() {
             userName = document.getElementById("user-name").value.trim();
-            if (!userName) return showNotification("Please enter your name!");
+            if (!userName) return;
 
             peer = new Peer();
             peer.on('open', (id) => {
@@ -226,7 +208,7 @@
         function joinChat() {
             userName = document.getElementById("user-name").value.trim();
             chatID = document.getElementById("chat-id").value.trim();
-            if (!userName || !chatID) return showNotification("Enter valid name and chat ID!");
+            if (!userName || !chatID) return;
 
             peer = new Peer();
             peer.on('open', () => {
@@ -266,7 +248,9 @@
 
         function scrollToBottom() {
             const chatBox = document.getElementById("chat-box");
-            chatBox.scrollTop = chatBox.scrollHeight;
+            requestAnimationFrame(() => {
+                chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "smooth" });
+            });
         }
     </script>
 
