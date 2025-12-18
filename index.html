@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-    <title>Arya AI Chat World</title>
+    <title>Arya AI Chat World (Online)</title>
     
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z'/%3E%3C/svg%3E">
 
@@ -140,6 +140,13 @@
             border: 1px solid rgba(99, 102, 241, 0.25); user-select: all;
         }
 
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%; background-color: #10b981; 
+            position: absolute; top: 18px; right: 10px; box-shadow: 0 0 5px #10b981;
+            display: none;
+        }
+        .connected .status-dot { display: block; }
+
         .btn-leave {
             justify-self: end; width: fit-content;
             background: transparent; color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3);
@@ -154,7 +161,7 @@
             display: flex; flex-direction: column; gap: 1rem;
             background: var(--bg-chat-area);
             -webkit-overflow-scrolling: touch; 
-            scroll-behavior: smooth; /* Native smooth scrolling */
+            scroll-behavior: smooth;
         }
 
         /* --- Chat Footer --- */
@@ -178,7 +185,6 @@
             min-width: 0;
         }
 
-        /* Footer Buttons */
         .btn-icon {
             width: 36px; height: 36px; border-radius: 50%; border: none;
             background: transparent; color: var(--text-muted);
@@ -188,7 +194,6 @@
         .btn-icon:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
         .btn-icon svg { width: 20px; height: 20px; fill: currentColor; }
 
-        /* Send Button */
         .btn-send {
             width: 48px; height: 48px; border-radius: 50%; border: none;
             background: var(--primary); color: white; display: flex;
@@ -198,7 +203,6 @@
         .btn-send:hover { transform: scale(1.05); }
         .btn-send svg { width: 22px; height: 22px; fill: white; margin-left: 2px; }
 
-        /* Recording UI */
         .recording-mode .input-group { border-color: var(--red-record); background: rgba(239, 68, 68, 0.1); }
         .recording-mode .msg-input, .recording-mode #btn-attach { display: none; }
         .recording-indicator { flex: 1; display: none; align-items: center; gap: 10px; color: var(--red-record); font-weight: 600; }
@@ -224,7 +228,6 @@
         .message.self .bubble { background-color: var(--msg-out); color: white; border-bottom-right-radius: 4px; }
         .message.other .bubble { background-color: var(--msg-in); color: var(--msg-in-text); border-bottom-left-radius: 4px; }
 
-        /* Media Styles in Bubble */
         .chat-media-img { max-width: 100%; border-radius: 8px; margin-bottom: 5px; display: block; cursor: pointer; }
         .chat-media-video { max-width: 100%; border-radius: 8px; margin-bottom: 5px; display: block; }
         
@@ -243,7 +246,6 @@
         .meta-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 4px; }
         .timestamp { font-size: 0.65rem; opacity: 0.7; }
 
-        /* Delete Button */
         .btn-delete-msg {
             background: transparent; border: none; cursor: pointer; padding: 2px;
             opacity: 0.6; transition: 0.2s; display: flex; align-items: center;
@@ -253,12 +255,10 @@
         .message.self .btn-delete-msg { color: white; }
         .message.other .btn-delete-msg { color: #ef4444; }
 
-        /* Deleted Text Placeholder */
         .deleted-text { font-style: italic; opacity: 0.7; font-size: 0.95rem; display: flex; align-items: center; gap: 5px; }
         .host-view-deleted { opacity: 0.5; border-left: 2px solid #ef4444; padding-left: 8px; margin-bottom: 4px; }
         .host-deleted-label { font-size: 0.7rem; color: #ef4444; font-weight: bold; display: block; margin-bottom: 2px; }
 
-        /* --- Toasts --- */
         #toast-container {
             position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
             z-index: 9999; display: flex; flex-direction: column; gap: 10px; width: auto; min-width: 300px;
@@ -289,7 +289,7 @@
                     </svg>
                     <h1 class="logo-text">Arya AI</h1>
                 </div>
-                <p>Welcome to Chat World</p>
+                <p>Cross-Device Chat World</p>
             </div>
 
             <div class="card-section">
@@ -323,7 +323,10 @@
                     <span class="code-label">Join Code</span>
                     <span id="display-code" class="code-badge">...</span>
                 </div>
-                <button id="btn-leave" class="btn btn-leave">Leave</button>
+                <div style="position:relative">
+                    <button id="btn-leave" class="btn btn-leave">Leave</button>
+                    <div id="status-dot" class="status-dot"></div>
+                </div>
             </div>
 
             <div id="chat-area" class="chat-area"></div>
@@ -331,25 +334,20 @@
             <div class="chat-footer" id="chat-footer">
                 <div class="input-group">
                     <input type="text" id="message-input" class="msg-input" placeholder="Type a message..." autocomplete="off">
-                    
                     <div class="recording-indicator" id="rec-ui">
                         <div class="rec-dot"></div>
                         <span id="rec-timer">00:00</span>
                         <div style="flex:1"></div>
                         <span class="btn-cancel-rec" id="btn-cancel-rec">Cancel</span>
                     </div>
-
                     <input type="file" id="file-input" hidden accept="image/*,video/*,.pdf,.doc,.docx,.txt">
-
-                    <button id="btn-attach" class="btn-icon" title="Attach File">
+                    <button id="btn-attach" class="btn-icon" title="Attach File (Max 200KB)">
                         <svg viewBox="0 0 24 24" style="transform: rotate(45deg);"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
                     </button>
-
                     <button id="btn-mic" class="btn-icon" title="Record Voice">
                         <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                     </button>
                 </div>
-
                 <button id="btn-send" class="btn-send">
                     <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                 </button>
@@ -359,27 +357,17 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            
-            // --- Safe Storage ---
-            const SafeStorage = {
-                _memory: {},
-                setItem: function(key, value) { try { localStorage.setItem(key, value); } catch (e) { this._memory[key] = value; } },
-                getItem: function(key) { try { return localStorage.getItem(key); } catch (e) { return this._memory[key] || null; } }
-            };
-
             const SafeSession = {
-                _memory: {},
-                getItem: function(key) { try { return sessionStorage.getItem(key); } catch (e) { return this._memory[key] || null; } },
-                setItem: function(key, value) { try { sessionStorage.setItem(key, value); } catch (e) { this._memory[key] = value; } }
+                getItem: function(key) { try { return sessionStorage.getItem(key); } catch (e) { return null; } },
+                setItem: function(key, value) { try { sessionStorage.setItem(key, value); } catch (e) { } }
             };
 
-            // --- State ---
             const state = {
                 currentUser: '', currentUserId: '', chatId: '', messages: [],
-                isRecording: false, mediaRecorder: null, audioChunks: [], recordingStartTime: 0, timerInterval: null
+                isRecording: false, mediaRecorder: null, audioChunks: [], recordingStartTime: 0, timerInterval: null,
+                socket: null, isHost: false
             };
 
-            // --- Elements ---
             const views = { home: document.getElementById('home-view'), chat: document.getElementById('chat-view') };
             const inputs = {
                 hostName: document.getElementById('host-username'), joinCode: document.getElementById('join-code'),
@@ -389,7 +377,8 @@
             const display = {
                 code: document.getElementById('display-code'), chatArea: document.getElementById('chat-area'),
                 toastContainer: document.getElementById('toast-container'), footer: document.getElementById('chat-footer'),
-                recUi: document.getElementById('rec-ui'), recTimer: document.getElementById('rec-timer')
+                recUi: document.getElementById('rec-ui'), recTimer: document.getElementById('rec-timer'),
+                statusDot: document.getElementById('status-dot')
             };
             const buttons = {
                 host: document.getElementById('btn-host'), join: document.getElementById('btn-join'),
@@ -398,7 +387,7 @@
                 attach: document.getElementById('btn-attach')
             };
 
-            // --- Init User ---
+            // Generate User ID
             let myUserId = SafeSession.getItem('chat_user_id');
             if (!myUserId) {
                 myUserId = 'user_' + Math.random().toString(36).substr(2, 9);
@@ -425,39 +414,90 @@
             buttons.leave.addEventListener('click', leaveChat);
             buttons.send.addEventListener('click', handleSendClick);
             inputs.message.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendClick(); });
-            
             buttons.mic.addEventListener('click', toggleRecording);
             buttons.cancelRec.addEventListener('click', cancelRecording);
-            
             buttons.attach.addEventListener('click', () => inputs.file.click());
             inputs.file.addEventListener('change', handleFileUpload);
 
             display.chatArea.addEventListener('click', (e) => {
                 const btn = e.target.closest('.btn-delete-msg');
-                if(btn) deleteMessage(btn.dataset.id);
+                if(btn) handleDeleteClick(btn.dataset.id);
             });
 
-            window.addEventListener('storage', (e) => {
-                if (state.chatId && e.key === `chat_history_${state.chatId}`) {
-                    loadMessages(); renderMessages();
-                }
-            });
-
-            // --- Functions ---
+            // --- Core Functions ---
             function enterChat(chatId, username, isHost) {
-                state.chatId = chatId; state.currentUser = username;
-                if(isHost) SafeSession.setItem(`host_status_${chatId}`, 'true');
-                views.home.classList.add('hidden'); views.chat.classList.remove('hidden');
+                state.chatId = chatId; 
+                state.currentUser = username;
+                state.isHost = isHost;
+                
+                // Keep UI State
+                views.home.classList.add('hidden'); 
+                views.chat.classList.remove('hidden');
                 display.code.textContent = chatId;
-                loadMessages();
+                
+                connectWebSocket(chatId);
+                
                 if (isHost) showToast(`Chat created! Code: ${chatId}`, 'success');
                 else showToast(`Joined chat ${chatId}`, 'success');
-                renderMessages();
+                
                 setTimeout(() => inputs.message.focus(), 100);
+            }
+
+            function connectWebSocket(chatId) {
+                // Public PieSocket Demo Key
+                const apiKey = 'VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9VRiaV'; 
+                const url = `wss://demo.piesocket.com/v3/${chatId}?api_key=${apiKey}&notify_self=1`;
+                
+                state.socket = new WebSocket(url);
+                
+                state.socket.onopen = () => {
+                    document.body.classList.add('connected');
+                    showToast('Connected to online server', 'success');
+                };
+                
+                state.socket.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        handleIncomingMessage(data);
+                    } catch(e) { console.log("Non-JSON message", event.data); }
+                };
+
+                state.socket.onclose = () => {
+                    document.body.classList.remove('connected');
+                    // Simple reconnect logic for demo
+                    setTimeout(() => { if(state.chatId) connectWebSocket(state.chatId); }, 3000);
+                };
+            }
+
+            function handleIncomingMessage(data) {
+                if(data.action === 'new_msg') {
+                    // Check if exists to prevent dupe if self-notify implies duplicate (PieSocket demo usually echoes)
+                    const exists = state.messages.find(m => m.id === data.payload.id);
+                    if(!exists) {
+                        state.messages.push(data.payload);
+                        renderMessages();
+                    }
+                } else if (data.action === 'soft_delete') {
+                    const msg = state.messages.find(m => m.id === data.targetId);
+                    if(msg) {
+                        msg.isDeleted = true;
+                        renderMessages();
+                    }
+                } else if (data.action === 'hard_delete') {
+                    state.messages = state.messages.filter(m => m.id !== data.targetId);
+                    renderMessages();
+                }
+            }
+
+            function broadcast(data) {
+                if(state.socket && state.socket.readyState === WebSocket.OPEN) {
+                    state.socket.send(JSON.stringify(data));
+                }
             }
 
             function leaveChat() {
                 if(state.isRecording) cancelRecording();
+                if(state.socket) state.socket.close();
                 state.chatId = ''; state.currentUser = ''; state.messages = [];
                 inputs.hostName.value = ''; inputs.joinCode.value = ''; inputs.joinName.value = ''; inputs.message.value = '';
                 views.chat.classList.add('hidden'); views.home.classList.remove('hidden');
@@ -471,15 +511,16 @@
             function sendMessage() {
                 const text = inputs.message.value.trim();
                 if (!text) return;
-                saveMessageToState({ type: 'text', content: text });
+                publishMessage({ type: 'text', content: text });
                 inputs.message.value = ''; inputs.message.focus();
             }
 
             function handleFileUpload(e) {
                 const file = e.target.files[0];
                 if (!file) return;
-                if (file.size > 2 * 1024 * 1024) {
-                    showToast('File too large (Max 2MB)', 'error');
+                // Limit set to 200KB for public demo socket stability
+                if (file.size > 200 * 1024) { 
+                    showToast('File too large for demo server (Max 200KB)', 'error');
                     inputs.file.value = '';
                     return;
                 }
@@ -489,13 +530,13 @@
                     let type = 'file';
                     if (file.type.startsWith('image/')) type = 'image';
                     else if (file.type.startsWith('video/')) type = 'video';
-                    saveMessageToState({ type: type, content: result, fileName: file.name });
+                    publishMessage({ type: type, content: result, fileName: file.name });
                     inputs.file.value = ''; 
                 };
                 reader.readAsDataURL(file);
             }
 
-            function saveMessageToState(msgData) {
+            function publishMessage(msgData) {
                 const msg = {
                     id: Date.now().toString(36) + Math.random().toString(36).substr(2),
                     userId: state.currentUserId,
@@ -506,30 +547,21 @@
                     timestamp: Date.now(),
                     isDeleted: false
                 };
-                state.messages.push(msg);
-                saveMessages(); renderMessages();
+                // Send to socket
+                broadcast({ action: 'new_msg', payload: msg });
             }
 
-            // --- DELETE LOGIC ---
-            function deleteMessage(msgId) {
-                const amIHost = SafeSession.getItem(`host_status_${state.chatId}`) === 'true';
-                
-                if (amIHost) {
-                    // HOST: Hard Delete (Remove Completely)
-                    state.messages = state.messages.filter(m => m.id !== msgId);
-                    showToast("Message permanently deleted");
+            function handleDeleteClick(msgId) {
+                if(state.isHost) {
+                    // Host -> Hard Delete (Remove everywhere)
+                    broadcast({ action: 'hard_delete', targetId: msgId });
                 } else {
-                    // USER: Soft Delete (Hide Content)
-                    const msgIndex = state.messages.findIndex(m => m.id === msgId);
-                    if(msgIndex !== -1) {
-                        state.messages[msgIndex].isDeleted = true;
-                        showToast("Message deleted");
-                    }
+                    // User -> Soft Delete (Hide content)
+                    broadcast({ action: 'soft_delete', targetId: msgId });
                 }
-                saveMessages();
-                renderMessages();
             }
 
+            // --- Media Logic (Same as before) ---
             async function toggleRecording() {
                 if (!state.isRecording) startRecording();
                 else stopRecording(true);
@@ -560,8 +592,8 @@
                         const reader = new FileReader();
                         reader.readAsDataURL(audioBlob);
                         reader.onloadend = () => {
-                            if (reader.result.length > 3000000) showToast('Audio too long!', 'error');
-                            else saveMessageToState({ type: 'audio', content: reader.result });
+                            if (reader.result.length > 200 * 1024) showToast('Audio too long for demo server!', 'error');
+                            else publishMessage({ type: 'audio', content: reader.result });
                         };
                     }
                     state.mediaRecorder.stream.getTracks().forEach(track => track.stop());
@@ -593,35 +625,18 @@
                 display.recTimer.textContent = `${m}:${s}`;
             }
 
-            function saveMessages() {
-                if (!state.chatId) return;
-                SafeStorage.setItem(`chat_history_${state.chatId}`, JSON.stringify(state.messages));
-            }
-
-            function loadMessages() {
-                if (!state.chatId) return;
-                const stored = SafeStorage.getItem(`chat_history_${state.chatId}`);
-                if (stored) { try { state.messages = JSON.parse(stored); } catch (e) { state.messages = []; } }
-                else { state.messages = []; }
-            }
-
-            // --- Scrolling Helper ---
+            // --- Rendering ---
             function scrollToBottom() {
-                display.chatArea.scrollTo({
-                    top: display.chatArea.scrollHeight,
-                    behavior: 'smooth'
-                });
+                display.chatArea.scrollTo({ top: display.chatArea.scrollHeight, behavior: 'smooth' });
             }
 
             function renderMessages() {
                 display.chatArea.innerHTML = '';
                 if (state.messages.length === 0) {
-                    display.chatArea.innerHTML = '<div class="empty-state">No messages yet.<br>Share the code to start chatting!</div>';
+                    display.chatArea.innerHTML = '<div class="empty-state">Online Chat Ready.<br>Share code to invite others!</div>';
                     return;
                 }
                 
-                const amIHost = SafeSession.getItem(`host_status_${state.chatId}`) === 'true';
-
                 state.messages.forEach(msg => {
                     const isSelf = msg.userId === state.currentUserId;
                     const wrapper = document.createElement('div');
@@ -631,7 +646,7 @@
                     let contentHtml = '';
                     
                     if (msg.isDeleted) {
-                        if (amIHost) {
+                        if (state.isHost) {
                             // Host sees deleted msg (soft)
                             contentHtml = `<div class="host-view-deleted"><span class="host-deleted-label">(User deleted this)</span>${getContentHtml(msg)}</div>`;
                         } else {
@@ -644,9 +659,10 @@
 
                     // Delete Button Logic
                     let deleteBtn = '';
-                    if (amIHost || (isSelf && !msg.isDeleted)) {
+                    // Host can always delete. User can delete own if not deleted.
+                    if (state.isHost || (isSelf && !msg.isDeleted)) {
                         deleteBtn = `
-                            <button class="btn-delete-msg" data-id="${msg.id}" title="Delete Message">
+                            <button class="btn-delete-msg" data-id="${msg.id}" title="${state.isHost ? 'Delete Permanently' : 'Delete Message'}">
                                 <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
                             </button>
                         `;
@@ -665,38 +681,17 @@
                     display.chatArea.appendChild(wrapper);
                 });
                 
-                // Auto Scroll Logic
                 scrollToBottom();
-                
-                // Force scroll if media loads late
                 const mediaItems = display.chatArea.querySelectorAll('img, video');
-                mediaItems.forEach(item => {
-                    item.onload = scrollToBottom;
-                    item.onloadeddata = scrollToBottom;
-                });
+                mediaItems.forEach(item => { item.onload = scrollToBottom; item.onloadeddata = scrollToBottom; });
             }
 
             function getContentHtml(msg) {
-                if (msg.type === 'audio') {
-                    return `<audio controls src="${msg.content}" class="audio-player"></audio>`;
-                } 
-                else if (msg.type === 'image') {
-                    return `<img src="${msg.content}" class="chat-media-img" onclick="window.open(this.src)">`;
-                }
-                else if (msg.type === 'video') {
-                    return `<video src="${msg.content}" controls class="chat-media-video"></video>`;
-                }
-                else if (msg.type === 'file') {
-                    return `
-                        <a href="${msg.content}" download="${msg.fileName}" class="file-card">
-                            <svg class="file-icon" viewBox="0 0 24 24" fill="white"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-                            <span class="file-name">${escapeHtml(msg.fileName)}</span>
-                        </a>
-                    `;
-                }
-                else {
-                    return escapeHtml(msg.content);
-                }
+                if (msg.type === 'audio') return `<audio controls src="${msg.content}" class="audio-player"></audio>`;
+                else if (msg.type === 'image') return `<img src="${msg.content}" class="chat-media-img" onclick="window.open(this.src)">`;
+                else if (msg.type === 'video') return `<video src="${msg.content}" controls class="chat-media-video"></video>`;
+                else if (msg.type === 'file') return `<a href="${msg.content}" download="${msg.fileName}" class="file-card"><svg class="file-icon" viewBox="0 0 24 24" fill="white"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg><span class="file-name">${escapeHtml(msg.fileName)}</span></a>`;
+                else return escapeHtml(msg.content);
             }
 
             function formatTime(ts) { return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
