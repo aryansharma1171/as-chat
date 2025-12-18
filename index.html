@@ -177,15 +177,17 @@
             min-width: 0;
         }
 
-        .btn-mic {
+        /* Footer Buttons */
+        .btn-icon {
             width: 36px; height: 36px; border-radius: 50%; border: none;
             background: transparent; color: var(--text-muted);
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: 0.2s; flex-shrink: 0;
         }
-        .btn-mic:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
-        .btn-mic svg { width: 20px; height: 20px; fill: currentColor; }
+        .btn-icon:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+        .btn-icon svg { width: 20px; height: 20px; fill: currentColor; }
 
+        /* Send Button */
         .btn-send {
             width: 48px; height: 48px; border-radius: 50%; border: none;
             background: var(--primary); color: white; display: flex;
@@ -197,7 +199,7 @@
 
         /* Recording UI */
         .recording-mode .input-group { border-color: var(--red-record); background: rgba(239, 68, 68, 0.1); }
-        .recording-mode .msg-input { display: none; }
+        .recording-mode .msg-input, .recording-mode #btn-attach { display: none; }
         .recording-indicator { flex: 1; display: none; align-items: center; gap: 10px; color: var(--red-record); font-weight: 600; }
         .recording-mode .recording-indicator { display: flex; }
         .rec-dot { width: 10px; height: 10px; background: var(--red-record); border-radius: 50%; animation: pulse 1s infinite; }
@@ -216,23 +218,30 @@
         .bubble {
             padding: 0.8rem 1rem; border-radius: 18px; position: relative;
             line-height: 1.5; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-            font-size: 1rem; min-width: 80px;
-            padding-right: 1.5rem; 
+            font-size: 1rem; min-width: 80px; padding-right: 1.5rem;
         }
         .message.self .bubble { background-color: var(--msg-out); color: white; border-bottom-right-radius: 4px; }
         .message.other .bubble { background-color: var(--msg-in); color: var(--msg-in-text); border-bottom-left-radius: 4px; }
 
-        /* Audio Player */
+        /* Media Styles in Bubble */
+        .chat-media-img { max-width: 100%; border-radius: 8px; margin-bottom: 5px; display: block; cursor: pointer; }
+        .chat-media-video { max-width: 100%; border-radius: 8px; margin-bottom: 5px; display: block; }
+        
+        .file-card {
+            display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.1);
+            padding: 8px 12px; border-radius: 8px; margin-bottom: 5px; text-decoration: none; color: inherit;
+        }
+        .file-card:hover { background: rgba(0,0,0,0.2); }
+        .file-icon { width: 24px; height: 24px; flex-shrink: 0; }
+        .file-name { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+
         .audio-player { width: 200px; height: 32px; outline: none; margin-top: 4px; }
 
         .sender-info { font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted); padding: 0 4px; }
         
-        .meta-row {
-            display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 4px;
-        }
+        .meta-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 4px; }
         .timestamp { font-size: 0.65rem; opacity: 0.7; }
 
-        /* Delete Button */
         .btn-delete-msg {
             background: transparent; border: none; cursor: pointer; padding: 2px;
             opacity: 0.6; transition: 0.2s; display: flex; align-items: center;
@@ -323,7 +332,13 @@
                         <span class="btn-cancel-rec" id="btn-cancel-rec">Cancel</span>
                     </div>
 
-                    <button id="btn-mic" class="btn-mic" title="Record Voice">
+                    <input type="file" id="file-input" hidden accept="image/*,video/*,.pdf,.doc,.docx,.txt">
+
+                    <button id="btn-attach" class="btn-icon" title="Attach File">
+                        <svg viewBox="0 0 24 24" style="transform: rotate(45deg);"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
+                    </button>
+
+                    <button id="btn-mic" class="btn-icon" title="Record Voice">
                         <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                     </button>
                 </div>
@@ -361,7 +376,8 @@
             const views = { home: document.getElementById('home-view'), chat: document.getElementById('chat-view') };
             const inputs = {
                 hostName: document.getElementById('host-username'), joinCode: document.getElementById('join-code'),
-                joinName: document.getElementById('join-username'), message: document.getElementById('message-input')
+                joinName: document.getElementById('join-username'), message: document.getElementById('message-input'),
+                file: document.getElementById('file-input')
             };
             const display = {
                 code: document.getElementById('display-code'), chatArea: document.getElementById('chat-area'),
@@ -371,7 +387,8 @@
             const buttons = {
                 host: document.getElementById('btn-host'), join: document.getElementById('btn-join'),
                 leave: document.getElementById('btn-leave'), send: document.getElementById('btn-send'),
-                mic: document.getElementById('btn-mic'), cancelRec: document.getElementById('btn-cancel-rec')
+                mic: document.getElementById('btn-mic'), cancelRec: document.getElementById('btn-cancel-rec'),
+                attach: document.getElementById('btn-attach')
             };
 
             // --- Init User ---
@@ -402,16 +419,19 @@
             buttons.send.addEventListener('click', handleSendClick);
             inputs.message.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendClick(); });
             
-            // Recording Listeners
+            // Audio Recording
             buttons.mic.addEventListener('click', toggleRecording);
             buttons.cancelRec.addEventListener('click', cancelRecording);
+
+            // File Attachment
+            buttons.attach.addEventListener('click', () => inputs.file.click());
+            inputs.file.addEventListener('change', handleFileUpload);
 
             // Delete delegation
             display.chatArea.addEventListener('click', (e) => {
                 const btn = e.target.closest('.btn-delete-msg');
                 if(btn) {
-                    const msgId = btn.dataset.id;
-                    deleteMessage(msgId);
+                    deleteMessage(btn.dataset.id);
                 }
             });
 
@@ -424,12 +444,7 @@
             // --- Functions ---
             function enterChat(chatId, username, isHost) {
                 state.chatId = chatId; state.currentUser = username;
-                
-                // Save host status
-                if(isHost) {
-                    SafeSession.setItem(`host_status_${chatId}`, 'true');
-                }
-
+                if(isHost) SafeSession.setItem(`host_status_${chatId}`, 'true');
                 views.home.classList.add('hidden'); views.chat.classList.remove('hidden');
                 display.code.textContent = chatId;
                 loadMessages();
@@ -448,11 +463,8 @@
 
             // --- Messaging Logic ---
             function handleSendClick() {
-                if (state.isRecording) {
-                    stopRecording(true);
-                } else {
-                    sendMessage();
-                }
+                if (state.isRecording) stopRecording(true);
+                else sendMessage();
             }
 
             function sendMessage() {
@@ -469,15 +481,41 @@
                     sender: state.currentUser,
                     type: msgData.type,
                     content: msgData.content,
+                    fileName: msgData.fileName || '',
                     timestamp: Date.now()
                 };
                 state.messages.push(msg);
                 saveMessages(); renderMessages();
             }
 
+            // --- File Upload Logic ---
+            function handleFileUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Limit: 2MB (Strict due to LocalStorage constraints)
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast('File too large (Max 2MB)', 'error');
+                    inputs.file.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const result = evt.target.result;
+                    let type = 'file';
+                    
+                    if (file.type.startsWith('image/')) type = 'image';
+                    else if (file.type.startsWith('video/')) type = 'video';
+                    
+                    saveMessageToState({ type: type, content: result, fileName: file.name });
+                    inputs.file.value = ''; // Reset input
+                };
+                reader.readAsDataURL(file);
+            }
+
             // --- Delete Logic ---
             function deleteMessage(msgId) {
-                // REMOVED CONFIRM DIALOG FOR INSTANT DELETE
                 state.messages = state.messages.filter(m => m.id !== msgId);
                 saveMessages();
                 renderMessages();
@@ -486,11 +524,8 @@
 
             // --- Recording Logic ---
             async function toggleRecording() {
-                if (!state.isRecording) {
-                    startRecording();
-                } else {
-                    stopRecording(true);
-                }
+                if (!state.isRecording) startRecording();
+                else stopRecording(true);
             }
 
             async function startRecording() {
@@ -498,46 +533,32 @@
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     state.mediaRecorder = new MediaRecorder(stream);
                     state.audioChunks = [];
-
-                    state.mediaRecorder.ondataavailable = (event) => {
-                        state.audioChunks.push(event.data);
-                    };
-
+                    state.mediaRecorder.ondataavailable = (event) => state.audioChunks.push(event.data);
                     state.mediaRecorder.start();
                     state.isRecording = true;
                     state.recordingStartTime = Date.now();
-                    
                     display.footer.classList.add('recording-mode');
                     display.recTimer.textContent = "00:00";
                     state.timerInterval = setInterval(updateTimer, 1000);
-                    
                 } catch (err) {
-                    showToast('Microphone access denied or not available.', 'error');
-                    console.error(err);
+                    showToast('Microphone access denied.', 'error');
                 }
             }
 
             function stopRecording(shouldSend) {
                 if (!state.mediaRecorder || state.mediaRecorder.state === 'inactive') return;
-
                 state.mediaRecorder.onstop = () => {
                     const audioBlob = new Blob(state.audioChunks, { type: 'audio/webm' });
-                    
                     if (shouldSend) {
                         const reader = new FileReader();
                         reader.readAsDataURL(audioBlob);
                         reader.onloadend = () => {
-                            const base64data = reader.result;
-                            if (base64data.length > 3000000) {
-                                showToast('Audio too long for local storage!', 'error');
-                            } else {
-                                saveMessageToState({ type: 'audio', content: base64data });
-                            }
+                            if (reader.result.length > 3000000) showToast('Audio too long!', 'error');
+                            else saveMessageToState({ type: 'audio', content: reader.result });
                         };
                     }
                     state.mediaRecorder.stream.getTracks().forEach(track => track.stop());
                 };
-
                 state.mediaRecorder.stop();
                 resetRecordingUI();
             }
@@ -594,9 +615,25 @@
                     const senderHtml = isSelf ? '' : `<div class="sender-info">${escapeHtml(msg.sender)}</div>`;
                     
                     let contentHtml = '';
+                    // CONTENT RENDERING LOGIC
                     if (msg.type === 'audio') {
                         contentHtml = `<audio controls src="${msg.content}" class="audio-player"></audio>`;
-                    } else {
+                    } 
+                    else if (msg.type === 'image') {
+                        contentHtml = `<img src="${msg.content}" class="chat-media-img" onclick="window.open(this.src)">`;
+                    }
+                    else if (msg.type === 'video') {
+                        contentHtml = `<video src="${msg.content}" controls class="chat-media-video"></video>`;
+                    }
+                    else if (msg.type === 'file') {
+                        contentHtml = `
+                            <a href="${msg.content}" download="${msg.fileName}" class="file-card">
+                                <svg class="file-icon" viewBox="0 0 24 24" fill="white"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                                <span class="file-name">${escapeHtml(msg.fileName)}</span>
+                            </a>
+                        `;
+                    }
+                    else {
                         contentHtml = escapeHtml(msg.content);
                     }
 
