@@ -154,6 +154,7 @@
             display: flex; flex-direction: column; gap: 1rem;
             background: var(--bg-chat-area);
             -webkit-overflow-scrolling: touch; 
+            scroll-behavior: smooth; /* Native smooth scrolling */
         }
 
         /* --- Chat Footer --- */
@@ -509,7 +510,7 @@
                 saveMessages(); renderMessages();
             }
 
-            // --- DELETE LOGIC (UPDATED) ---
+            // --- DELETE LOGIC ---
             function deleteMessage(msgId) {
                 const amIHost = SafeSession.getItem(`host_status_${state.chatId}`) === 'true';
                 
@@ -604,6 +605,14 @@
                 else { state.messages = []; }
             }
 
+            // --- Scrolling Helper ---
+            function scrollToBottom() {
+                display.chatArea.scrollTo({
+                    top: display.chatArea.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+
             function renderMessages() {
                 display.chatArea.innerHTML = '';
                 if (state.messages.length === 0) {
@@ -634,7 +643,6 @@
                     }
 
                     // Delete Button Logic
-                    // Host can always delete (Hard Delete). User can delete own if not already deleted (Soft Delete).
                     let deleteBtn = '';
                     if (amIHost || (isSelf && !msg.isDeleted)) {
                         deleteBtn = `
@@ -656,7 +664,16 @@
                     `;
                     display.chatArea.appendChild(wrapper);
                 });
-                display.chatArea.scrollTop = display.chatArea.scrollHeight;
+                
+                // Auto Scroll Logic
+                scrollToBottom();
+                
+                // Force scroll if media loads late
+                const mediaItems = display.chatArea.querySelectorAll('img, video');
+                mediaItems.forEach(item => {
+                    item.onload = scrollToBottom;
+                    item.onloadeddata = scrollToBottom;
+                });
             }
 
             function getContentHtml(msg) {
