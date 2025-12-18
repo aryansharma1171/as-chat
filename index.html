@@ -2,488 +2,262 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-    <title>Arya AI Chat World</title>
-    
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z'/%3E%3C/svg%3E">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arya AI Chat World - Upgrading</title>
     <style>
-        :root {
-            /* PALETTE */
-            --primary: #6366f1;       
-            --primary-hover: #4f46e5; 
-            --red-record: #ef4444;
-            --green-status: #10b981;
-            
-            --bg-body: #0b0f19;       
-            --bg-card: #111827;       
-            --bg-input: #1f2937;      
-            --bg-chat-area: #0f1523;  
-            
-            --text-main: #f9fafb;     
-            --text-muted: #9ca3af;    
-            
-            --border: #374151;        
-            
-            --msg-out: #6366f1;       
-            --msg-in: #1f2937;        
-            --msg-in-text: #e5e7eb;   
-            
-            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-            --radius: 16px;
-            --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        /* --- RESET & BASICS --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: var(--font-family);
-            background-color: var(--bg-card);
-            color: var(--text-main);
-            height: 100dvh; 
-            width: 100%;
+            background-color: #050510; /* Deep dark AI blue/black */
+            color: #ffffff;
+            height: 100vh;
             display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden; /* Prevents scrollbars during animation */
         }
 
-        /* --- Layouts --- */
+        /* --- BACKGROUND PARTICLES --- */
+        .bg-glow {
+            position: absolute;
+            width: 150vw;
+            height: 150vh;
+            background: radial-gradient(circle, rgba(68, 114, 255, 0.05) 0%, rgba(0,0,0,0) 70%);
+            animation: pulse-bg 10s infinite alternate;
+            z-index: -1;
+        }
+
+        /* --- MAIN CONTAINER --- */
         .container {
+            text-align: center;
+            width: 90%;
+            max-width: 1200px; /* Wide layout for PC */
+            padding: 40px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- ANIMATED AI CORE (The "Cool Animation") --- */
+        .ai-core {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 40px;
+        }
+
+        .core-circle {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            display: flex;
-            flex-direction: column;
+            border-radius: 50%;
+            border: 2px solid #4deeea;
+            box-shadow: 0 0 15px #4deeea, inset 0 0 15px #4deeea;
+            animation: spin 4s linear infinite;
+        }
+
+        .core-circle::before {
+            content: '';
+            position: absolute;
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border-radius: 50%;
+            border: 2px solid #74ee15;
+            border-top-color: transparent;
+            border-bottom-color: transparent;
+            animation: spin-reverse 2s linear infinite;
+        }
+
+        .core-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 30px #4deeea;
+            animation: pulse-core 1.5s ease-in-out infinite alternate;
+        }
+
+        /* --- TYPOGRAPHY & GLITCH EFFECT --- */
+        h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: -2px;
+            text-transform: uppercase;
             position: relative;
-            background: var(--bg-card);
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #4deeea, #74ee15);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        @media (min-width: 768px) {
-            body {
-                background-color: var(--bg-body);
-                padding: 20px;
-                justify-content: center;
-                align-items: center;
+        /* Glitch animation layers */
+        h1::before, h1::after {
+            content: 'ARYA AI CHAT WORLD';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #050510;
+            overflow: hidden;
+            color: white;
+            opacity: 0.8;
+        }
+
+        h1::before {
+            left: 2px;
+            text-shadow: -1px 0 #ff00c1;
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+
+        h1::after {
+            left: -2px;
+            text-shadow: -1px 0 #00fff9;
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2.5s infinite linear alternate-reverse;
+        }
+
+        .status {
+            font-size: 1.5rem;
+            color: #a0a0b0;
+            margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .message {
+            font-size: 1.1rem;
+            color: #6c757d;
+            max-width: 600px;
+            line-height: 1.6;
+            margin: 0 auto;
+        }
+
+        /* --- LOADING BAR --- */
+        .loader-container {
+            width: 100%;
+            max-width: 400px;
+            height: 4px;
+            background: #1a1a2e;
+            margin-top: 40px;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loader-bar {
+            height: 100%;
+            width: 50%;
+            background: linear-gradient(90deg, #4deeea, #74ee15);
+            position: absolute;
+            left: -50%;
+            animation: load 2s infinite ease-in-out;
+        }
+
+        /* --- MOBILE ADJUSTMENTS --- */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem; /* Smaller text for mobile */
             }
+            
+            .ai-core {
+                width: 80px;
+                height: 80px;
+            }
+
             .container {
-                width: 95%; max-width: 1200px; 
-                height: 90vh; max-height: 900px;
-                box-shadow: var(--shadow); 
-                border-radius: var(--radius);
-                border: 1px solid var(--border); 
-                overflow: hidden;
+                width: 95%;
+                padding: 20px;
             }
-            #home-view { max-width: 500px; margin: 0 auto; background: transparent; }
+
+            .status {
+                font-size: 1.2rem;
+            }
         }
 
-        .view { display: flex; flex-direction: column; height: 100%; width: 100%; }
-        .hidden { display: none !important; }
-
-        /* --- Logo --- */
-        .brand-logo { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 0.5rem; }
-        .logo-icon { width: 48px; height: 48px; stroke: var(--primary); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-        .logo-text { font-size: 1.85rem; color: var(--primary); font-weight: 700; letter-spacing: -0.5px; }
-
-        .chat-header .brand-logo { justify-content: flex-start; margin-bottom: 0; gap: 8px; }
-        .chat-header .logo-icon { width: 28px; height: 28px; }
-        .chat-header .logo-text { font-size: 1.1rem; color: var(--text-main); display: none; }
-        @media (min-width: 380px) { .chat-header .logo-text { display: block; } }
-
-        /* --- Homepage --- */
-        #home-view { padding: 2rem; justify-content: center; width: 100%; }
-        .logo-area { text-align: center; margin-bottom: 3rem; }
-        .logo-area p { color: var(--text-muted); font-size: 1rem; margin-top: 5px; }
-        .card-section { padding: 0; width: 100%; }
-        .form-group { margin-bottom: 1.25rem; }
-        .form-label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main); }
-        .form-input {
-            width: 100%; padding: 0.9rem; border: 1px solid var(--border);
-            border-radius: 12px; font-size: 16px; background-color: var(--bg-input);
-            color: var(--text-main); outline: none; transition: border-color 0.2s;
-        }
-        .form-input:focus { border-color: var(--primary); }
-        .btn {
-            width: 100%; padding: 0.9rem; border: none; border-radius: 12px;
-            font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s;
-        }
-        .btn:active { transform: scale(0.97); }
-        .btn-primary { background-color: var(--primary); color: white; }
-        .btn-primary:hover { opacity: 0.9; }
-        .btn-secondary { background-color: transparent; border: 1px solid var(--border); color: var(--text-main); margin-top: 5px; }
-        .btn-secondary:hover { background-color: rgba(255, 255, 255, 0.05); }
-        .divider {
-            display: flex; align-items: center; text-align: center; margin: 2rem 0;
-            color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
-        .divider span { padding: 0 10px; }
-
-        /* --- Chat View Header --- */
-        .chat-header {
-            padding: 0.8rem 1.2rem;
-            border-bottom: 1px solid var(--border);
-            background: var(--bg-card);
-            height: 65px;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
+        /* --- KEYFRAMES --- */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        .chat-header .brand-logo { justify-self: start; }
-
-        .code-display { 
-            justify-self: center; display: flex; flex-direction: column; align-items: center; line-height: 1.1; 
-        }
-        .code-label { font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 2px; }
-        .code-badge {
-            background: rgba(99, 102, 241, 0.15); color: #a5b4fc; padding: 2px 8px;
-            border-radius: 4px; font-family: monospace; font-weight: bold; font-size: 0.95rem;
-            border: 1px solid rgba(99, 102, 241, 0.25); user-select: all;
+        @keyframes spin-reverse {
+            0% { transform: rotate(360deg); }
+            100% { transform: rotate(0deg); }
         }
 
-        /* Status Dot */
-        .status-dot {
-            width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444; /* Red = Disconnected */
-            margin-right: 15px; box-shadow: 0 0 5px #ef4444;
-            transition: background-color 0.3s, box-shadow 0.3s;
-        }
-        .connected .status-dot { background-color: var(--green-status); box-shadow: 0 0 5px var(--green-status); }
-
-        .btn-leave {
-            justify-self: end; width: fit-content;
-            background: transparent; color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3);
-            padding: 0.35rem 0.8rem; font-size: 0.8rem; border-radius: 6px; cursor: pointer; transition: 0.2s;
-            display: flex; align-items: center; gap: 4px;
-        }
-        .btn-leave:hover { background: rgba(248, 113, 113, 0.1); border-color: #f87171; }
-
-        /* --- Chat Area --- */
-        .chat-area {
-            flex: 1; overflow-y: auto; padding: 1.5rem;
-            display: flex; flex-direction: column; gap: 1rem;
-            background: var(--bg-chat-area);
-            -webkit-overflow-scrolling: touch; 
-            scroll-behavior: smooth;
+        @keyframes pulse-core {
+            0% { opacity: 0.5; box-shadow: 0 0 10px #4deeea; }
+            100% { opacity: 1; box-shadow: 0 0 40px #4deeea, 0 0 80px #74ee15; }
         }
 
-        /* System Messages */
-        .system-message {
-            text-align: center; font-size: 0.75rem; color: var(--text-muted); 
-            background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 20px;
-            align-self: center; margin: 5px 0; max-width: 90%;
+        @keyframes pulse-bg {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.1); opacity: 1; }
         }
 
-        /* --- Chat Footer --- */
-        .chat-footer {
-            padding: 0.8rem 1rem; border-top: 1px solid var(--border);
-            background: var(--bg-card); display: flex; gap: 0.8rem; align-items: center;
-            position: relative; flex-shrink: 0; 
+        @keyframes load {
+            0% { left: -50%; }
+            50% { left: 25%; width: 50%; }
+            100% { left: 100%; width: 10%; }
         }
 
-        .input-group {
-            flex: 1; display: flex; align-items: center; gap: 8px;
-            background: var(--bg-input); border: 1px solid var(--border);
-            border-radius: 30px; padding: 4px 6px 4px 16px;
-            transition: border-color 0.2s;
-        }
-        .input-group:focus-within { border-color: var(--primary); }
-
-        .msg-input {
-            flex: 1; background: transparent; border: none; outline: none;
-            color: var(--text-main); font-family: inherit; font-size: 16px; padding: 8px 0;
-            min-width: 0;
+        @keyframes glitch-anim {
+            0% { clip: rect(10px, 9999px, 31px, 0); }
+            20% { clip: rect(60px, 9999px, 83px, 0); }
+            40% { clip: rect(35px, 9999px, 99px, 0); }
+            60% { clip: rect(78px, 9999px, 20px, 0); }
+            80% { clip: rect(15px, 9999px, 45px, 0); }
+            100% { clip: rect(5px, 9999px, 90px, 0); }
         }
 
-        .btn-icon {
-            width: 36px; height: 36px; border-radius: 50%; border: none;
-            background: transparent; color: var(--text-muted);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.2s; flex-shrink: 0;
+        @keyframes glitch-anim-2 {
+            0% { clip: rect(65px, 9999px, 100px, 0); }
+            20% { clip: rect(12px, 9999px, 5px, 0); }
+            40% { clip: rect(89px, 9999px, 35px, 0); }
+            60% { clip: rect(3px, 9999px, 60px, 0); }
+            80% { clip: rect(44px, 9999px, 12px, 0); }
+            100% { clip: rect(20px, 9999px, 75px, 0); }
         }
-        .btn-icon:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
-        .btn-icon svg { width: 20px; height: 20px; fill: currentColor; }
-
-        .btn-send {
-            width: 48px; height: 48px; border-radius: 50%; border: none;
-            background: var(--primary); color: white; display: flex;
-            align-items: center; justify-content: center; cursor: pointer;
-            flex-shrink: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.1s;
-        }
-        .btn-send:hover { transform: scale(1.05); }
-        .btn-send svg { width: 22px; height: 22px; fill: white; margin-left: 2px; }
-
-        .recording-mode .input-group { border-color: var(--red-record); background: rgba(239, 68, 68, 0.1); }
-        .recording-mode .msg-input, .recording-mode #btn-attach { display: none; }
-        .recording-indicator { flex: 1; display: none; align-items: center; gap: 10px; color: var(--red-record); font-weight: 600; }
-        .recording-mode .recording-indicator { display: flex; }
-        .rec-dot { width: 10px; height: 10px; background: var(--red-record); border-radius: 50%; animation: pulse 1s infinite; }
-        .btn-cancel-rec { color: var(--text-muted); font-size: 0.8rem; cursor: pointer; padding: 4px 8px; }
-        .btn-cancel-rec:hover { color: var(--text-main); text-decoration: underline; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-        /* --- Messages --- */
-        .message { max-width: 85%; display: flex; flex-direction: column; animation: fadeIn 0.2s ease-out; }
-        @media (min-width: 768px) { .message { max-width: 60%; } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .message.self { align-self: flex-end; align-items: flex-end; }
-        .message.other { align-self: flex-start; align-items: flex-start; }
-
-        .bubble {
-            padding: 0.8rem 1rem; border-radius: 18px; position: relative;
-            line-height: 1.5; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-            font-size: 1rem; min-width: 80px; padding-right: 1.5rem;
-        }
-        .message.self .bubble { background-color: var(--msg-out); color: white; border-bottom-right-radius: 4px; }
-        .message.other .bubble { background-color: var(--msg-in); color: var(--msg-in-text); border-bottom-left-radius: 4px; }
-
-        .chat-media-img { max-width: 100%; border-radius: 8px; margin-bottom: 5px; display: block; cursor: pointer; }
-        .chat-media-video { max-width: 100%; border-radius: 8px; margin-bottom: 5px; display: block; }
-        .file-card {
-            display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.1);
-            padding: 8px 12px; border-radius: 8px; margin-bottom: 5px; text-decoration: none; color: inherit;
-        }
-        .file-card:hover { background: rgba(0,0,0,0.2); }
-        .file-icon { width: 24px; height: 24px; flex-shrink: 0; }
-        .file-name { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
-        .audio-player { width: 200px; height: 32px; outline: none; margin-top: 4px; }
-
-        .sender-info { font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted); padding: 0 4px; }
-        .meta-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 4px; }
-        .timestamp { font-size: 0.65rem; opacity: 0.7; }
-
-        .btn-delete-msg {
-            background: transparent; border: none; cursor: pointer; padding: 2px;
-            opacity: 0.6; transition: 0.2s; display: flex; align-items: center;
-        }
-        .btn-delete-msg:hover { opacity: 1; transform: scale(1.1); }
-        .btn-delete-msg svg { width: 14px; height: 14px; fill: currentColor; }
-        .message.self .btn-delete-msg { color: white; }
-        .message.other .btn-delete-msg { color: #ef4444; }
-
-        .deleted-text { font-style: italic; opacity: 0.7; font-size: 0.95rem; display: flex; align-items: center; gap: 5px; }
-        .host-view-deleted { opacity: 0.5; border-left: 2px solid #ef4444; padding-left: 8px; margin-bottom: 4px; }
-        .host-deleted-label { font-size: 0.7rem; color: #ef4444; font-weight: bold; display: block; margin-bottom: 2px; }
-
-        #toast-container {
-            position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
-            z-index: 9999; display: flex; flex-direction: column; gap: 10px; width: auto; min-width: 300px;
-        }
-        .toast {
-            padding: 14px 20px; border-radius: 8px; color: white; font-size: 0.95rem;
-            display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: slideIn 0.3s ease-out forwards;
-        }
-        .toast.error { background-color: #ef4444; }
-        .toast.success { background-color: #10b981; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
-        
-        .empty-state { text-align: center; color: var(--text-muted); margin: auto; font-style: italic; padding: 2rem; }
     </style>
 </head>
 <body>
 
-    <div id="toast-container"></div>
+    <div class="bg-glow"></div>
 
     <div class="container">
-        <div id="home-view" class="view">
-            <div class="logo-area">
-                <div class="brand-logo">
-                    <svg class="logo-icon" viewBox="0 0 24 24">
-                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-                    </svg>
-                    <h1 class="logo-text">Arya AI</h1>
-                </div>
-                <p>Cross-Device Chat World</p>
-            </div>
-
-            <div class="card-section">
-                <div class="form-group">
-                    <label class="form-label">Host a New Chat</label>
-                    <input type="text" id="host-username" class="form-input" placeholder="Enter your name" autocomplete="off">
-                </div>
-                <button id="btn-host" class="btn btn-primary">Start Arya Chat</button>
-                <div class="divider"><span>OR JOIN EXISTING</span></div>
-                <div class="form-group">
-                    <label class="form-label">Join Code</label>
-                    <input type="text" id="join-code" class="form-input" placeholder="e.g. A1B2C3" autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Your Name</label>
-                    <input type="text" id="join-username" class="form-input" placeholder="Enter your name" autocomplete="off">
-                </div>
-                <button id="btn-join" class="btn btn-secondary">Join Chat</button>
-            </div>
+        <div class="ai-core">
+            <div class="core-circle"></div>
+            <div class="core-inner"></div>
         </div>
 
-        <div id="chat-view" class="view hidden">
-            <div class="chat-header">
-                <div class="brand-logo">
-                    <svg class="logo-icon" viewBox="0 0 24 24">
-                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-                    </svg>
-                    <h2 class="logo-text">Arya</h2>
-                </div>
-                <div class="code-display">
-                    <span class="code-label">Join Code</span>
-                    <span id="display-code" class="code-badge">...</span>
-                </div>
-                <div style="position:relative; display:flex; align-items:center;">
-                    <div id="status-dot" class="status-dot" title="Connection Status"></div>
-                    <button id="btn-leave" class="btn btn-leave">Leave</button>
-                </div>
-            </div>
+        <h1 data-text="ARYA AI CHAT WORLD">Arya AI Chat World</h1>
+        
+        <div class="status">System Upgrade in Progress</div>
+        
+        <p class="message">
+            Sorry, we are currently unavailable. We are adding new neural features and fixing bugs to improve your experience.<br>
+            <strong>The chat world will be back online shortly.</strong>
+        </p>
 
-            <div id="chat-area" class="chat-area"></div>
-
-            <div class="chat-footer" id="chat-footer">
-                <div class="input-group">
-                    <input type="text" id="message-input" class="msg-input" placeholder="Type a message..." autocomplete="off">
-                    <div class="recording-indicator" id="rec-ui">
-                        <div class="rec-dot"></div>
-                        <span id="rec-timer">00:00</span>
-                        <div style="flex:1"></div>
-                        <span class="btn-cancel-rec" id="btn-cancel-rec">Cancel</span>
-                    </div>
-                    <input type="file" id="file-input" hidden accept="image/*,video/*,.pdf,.doc,.docx,.txt">
-                    <button id="btn-attach" class="btn-icon" title="Attach File">
-                        <svg viewBox="0 0 24 24" style="transform: rotate(45deg);"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
-                    </button>
-                    <button id="btn-mic" class="btn-icon" title="Record Voice">
-                        <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-                    </button>
-                </div>
-                <button id="btn-send" class="btn-send">
-                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-                </button>
-            </div>
+        <div class="loader-container">
+            <div class="loader-bar"></div>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const SafeSession = {
-                getItem: function(key) { try { return sessionStorage.getItem(key); } catch (e) { return null; } },
-                setItem: function(key, value) { try { sessionStorage.setItem(key, value); } catch (e) { } }
-            };
-
-            const state = {
-                currentUser: '', currentUserId: '', chatId: '', messages: [],
-                isRecording: false, mediaRecorder: null, audioChunks: [], recordingStartTime: 0, timerInterval: null,
-                socket: null, isHost: false
-            };
-
-            const views = { home: document.getElementById('home-view'), chat: document.getElementById('chat-view') };
-            const inputs = {
-                hostName: document.getElementById('host-username'), joinCode: document.getElementById('join-code'),
-                joinName: document.getElementById('join-username'), message: document.getElementById('message-input'),
-                file: document.getElementById('file-input')
-            };
-            const display = {
-                code: document.getElementById('display-code'), chatArea: document.getElementById('chat-area'),
-                toastContainer: document.getElementById('toast-container'), footer: document.getElementById('chat-footer'),
-                recUi: document.getElementById('rec-ui'), recTimer: document.getElementById('rec-timer'),
-                statusDot: document.getElementById('status-dot')
-            };
-            const buttons = {
-                host: document.getElementById('btn-host'), join: document.getElementById('btn-join'),
-                leave: document.getElementById('btn-leave'), send: document.getElementById('btn-send'),
-                mic: document.getElementById('btn-mic'), cancelRec: document.getElementById('btn-cancel-rec'),
-                attach: document.getElementById('btn-attach')
-            };
-
-            let myUserId = SafeSession.getItem('chat_user_id');
-            if (!myUserId) {
-                myUserId = 'user_' + Math.random().toString(36).substr(2, 9);
-                SafeSession.setItem('chat_user_id', myUserId);
-            }
-            state.currentUserId = myUserId;
-
-            // --- Event Listeners ---
-            if(buttons.host) buttons.host.addEventListener('click', () => {
-                const name = inputs.hostName.value.trim();
-                if (!name) return showToast('Please enter your name', 'error');
-                const newChatId = Math.random().toString(36).substring(2, 8).toUpperCase();
-                enterChat(newChatId, name, true);
-            });
-
-            if(buttons.join) buttons.join.addEventListener('click', () => {
-                const code = inputs.joinCode.value.trim().toUpperCase();
-                const name = inputs.joinName.value.trim();
-                if (!code) return showToast('Please enter a Chat ID', 'error');
-                if (!name) return showToast('Please enter your name', 'error');
-                enterChat(code, name, false);
-            });
-
-            buttons.leave.addEventListener('click', leaveChat);
-            buttons.send.addEventListener('click', handleSendClick);
-            inputs.message.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendClick(); });
-            buttons.mic.addEventListener('click', toggleRecording);
-            buttons.cancelRec.addEventListener('click', cancelRecording);
-            buttons.attach.addEventListener('click', () => inputs.file.click());
-            inputs.file.addEventListener('change', handleFileUpload);
-
-            display.chatArea.addEventListener('click', (e) => {
-                const btn = e.target.closest('.btn-delete-msg');
-                if(btn) handleDeleteClick(btn.dataset.id);
-            });
-
-            // --- Core Functions ---
-            function enterChat(chatId, username, isHost) {
-                state.chatId = chatId; 
-                state.currentUser = username;
-                state.isHost = isHost;
-                
-                views.home.classList.add('hidden'); 
-                views.chat.classList.remove('hidden');
-                display.code.textContent = chatId;
-                
-                connectWebSocket(chatId, username);
-                
-                if (isHost) showToast(`Chat created! Code: ${chatId}`, 'success');
-                else showToast(`Joined chat ${chatId}`, 'success');
-                
-                setTimeout(() => inputs.message.focus(), 100);
-            }
-
-            function connectWebSocket(chatId, nickname) {
-                // HACK.CHAT is a free, public websocket chat. We use the 'channel' feature.
-                const url = `wss://hack.chat/chat-ws`;
-                state.socket = new WebSocket(url);
-                
-                state.socket.onopen = () => {
-                    document.body.classList.add('connected');
-                    // JOIN PROTOCOL: Send join command immediately on connect
-                    state.socket.send(JSON.stringify({
-                        cmd: 'join',
-                        channel: 'ARYA_AI_' + chatId, // Prefixing to avoid collisions with random words
-                        nick: nickname
-                    }));
-                };
-                
-                state.socket.onmessage = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        handleIncomingMessage(data);
-                    } catch(e) { console.log("Err", e); }
-                };
-
-                state.socket.onclose = () => {
-                    document.body.classList.remove('connected');
-                    addSystemMessage(`Connection lost. Reconnecting...`);
-                    setTimeout(() => { if(state.chatId) connectWebSocket(state.chatId, state.currentUser); }, 3000);
-                };
-            }
-
-            function handleIncomingMessage(data) {
-                if(data.cmd === 'onlineSet') {
-                    addSystemMessage(`You joined channel ${state.chatId}`);
-                }
-                
-                if(data.cmd === 'chat') {
-                    // Check if it's a special protocol message from our app
-                    try {
-                        // Hack.chat sends text. If we sent JSON object inside text, we parse it.
-                        // Our protocol: "ARYA_JSON::" + JSON string
-                        if(data.text && data.text.startsWith('ARYA_JSON::')) {
-                            const payload = JSON.parse(data.text.replace('ARYA_JSON::',
+</body>
+</html>
