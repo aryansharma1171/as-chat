@@ -142,8 +142,8 @@
 
         /* Status Dot */
         .status-dot {
-            width: 8px; height: 8px; border-radius: 50%; background-color: #ef4444; /* Red by default */
-            position: absolute; top: 20px; right: 15px; box-shadow: 0 0 5px #ef4444;
+            width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444; /* Red = Disconnected */
+            margin-right: 15px; box-shadow: 0 0 5px #ef4444;
             transition: background-color 0.3s, box-shadow 0.3s;
         }
         .connected .status-dot { background-color: var(--green-status); box-shadow: 0 0 5px var(--green-status); }
@@ -152,7 +152,7 @@
             justify-self: end; width: fit-content;
             background: transparent; color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3);
             padding: 0.35rem 0.8rem; font-size: 0.8rem; border-radius: 6px; cursor: pointer; transition: 0.2s;
-            display: flex; align-items: center; gap: 4px; margin-right: 20px;
+            display: flex; align-items: center; gap: 4px;
         }
         .btn-leave:hover { background: rgba(248, 113, 113, 0.1); border-color: #f87171; }
 
@@ -169,7 +169,7 @@
         .system-message {
             text-align: center; font-size: 0.75rem; color: var(--text-muted); 
             background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 20px;
-            align-self: center; margin: 5px 0;
+            align-self: center; margin: 5px 0; max-width: 90%;
         }
 
         /* --- Chat Footer --- */
@@ -329,8 +329,8 @@
                     <span id="display-code" class="code-badge">...</span>
                 </div>
                 <div style="position:relative; display:flex; align-items:center;">
-                    <button id="btn-leave" class="btn btn-leave">Leave</button>
                     <div id="status-dot" class="status-dot" title="Connection Status"></div>
+                    <button id="btn-leave" class="btn btn-leave">Leave</button>
                 </div>
             </div>
 
@@ -346,7 +346,7 @@
                         <span class="btn-cancel-rec" id="btn-cancel-rec">Cancel</span>
                     </div>
                     <input type="file" id="file-input" hidden accept="image/*,video/*,.pdf,.doc,.docx,.txt">
-                    <button id="btn-attach" class="btn-icon" title="Attach File (Max 200KB)">
+                    <button id="btn-attach" class="btn-icon" title="Attach File">
                         <svg viewBox="0 0 24 24" style="transform: rotate(45deg);"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
                     </button>
                     <button id="btn-mic" class="btn-icon" title="Record Voice">
@@ -438,7 +438,7 @@
                 views.chat.classList.remove('hidden');
                 display.code.textContent = chatId;
                 
-                connectWebSocket(chatId);
+                connectWebSocket(chatId, username);
                 
                 if (isHost) showToast(`Chat created! Code: ${chatId}`, 'success');
                 else showToast(`Joined chat ${chatId}`, 'success');
@@ -446,277 +446,44 @@
                 setTimeout(() => inputs.message.focus(), 100);
             }
 
-            function connectWebSocket(chatId) {
-                // Using PieSocket Free Demo
-                const apiKey = 'VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9VRiaV'; 
-                const url = `wss://demo.piesocket.com/v3/${chatId}?api_key=${apiKey}&notify_self=1`;
-                
+            function connectWebSocket(chatId, nickname) {
+                // HACK.CHAT is a free, public websocket chat. We use the 'channel' feature.
+                const url = `wss://hack.chat/chat-ws`;
                 state.socket = new WebSocket(url);
                 
                 state.socket.onopen = () => {
                     document.body.classList.add('connected');
-                    addSystemMessage(`You joined the chat.`);
+                    // JOIN PROTOCOL: Send join command immediately on connect
+                    state.socket.send(JSON.stringify({
+                        cmd: 'join',
+                        channel: 'ARYA_AI_' + chatId, // Prefixing to avoid collisions with random words
+                        nick: nickname
+                    }));
                 };
                 
                 state.socket.onmessage = (event) => {
                     try {
                         const data = JSON.parse(event.data);
                         handleIncomingMessage(data);
-                    } catch(e) { console.log("Non-JSON", event.data); }
+                    } catch(e) { console.log("Err", e); }
                 };
 
                 state.socket.onclose = () => {
                     document.body.classList.remove('connected');
-                    addSystemMessage(`Disconnected. Reconnecting...`);
-                    setTimeout(() => { if(state.chatId) connectWebSocket(state.chatId); }, 3000);
+                    addSystemMessage(`Connection lost. Reconnecting...`);
+                    setTimeout(() => { if(state.chatId) connectWebSocket(state.chatId, state.currentUser); }, 3000);
                 };
             }
 
             function handleIncomingMessage(data) {
-                if(data.action === 'new_msg') {
-                    // prevent duplicate if optimistic UI already added it
-                    const exists = state.messages.find(m => m.id === data.payload.id);
-                    if(!exists) {
-                        state.messages.push(data.payload);
-                        renderMessages();
-                    }
-                } else if (data.action === 'soft_delete') {
-                    const msg = state.messages.find(m => m.id === data.targetId);
-                    if(msg) { msg.isDeleted = true; renderMessages(); }
-                } else if (data.action === 'hard_delete') {
-                    state.messages = state.messages.filter(m => m.id !== data.targetId);
-                    renderMessages();
-                }
-            }
-
-            function broadcast(data) {
-                if(state.socket && state.socket.readyState === WebSocket.OPEN) {
-                    state.socket.send(JSON.stringify(data));
-                }
-            }
-
-            function leaveChat() {
-                if(state.isRecording) cancelRecording();
-                if(state.socket) state.socket.close();
-                state.chatId = ''; state.currentUser = ''; state.messages = [];
-                inputs.hostName.value = ''; inputs.joinCode.value = ''; inputs.joinName.value = ''; inputs.message.value = '';
-                views.chat.classList.add('hidden'); views.home.classList.remove('hidden');
-            }
-
-            function handleSendClick() {
-                if (state.isRecording) stopRecording(true);
-                else sendMessage();
-            }
-
-            function sendMessage() {
-                const text = inputs.message.value.trim();
-                if (!text) return;
-                publishMessage({ type: 'text', content: text });
-                inputs.message.value = ''; inputs.message.focus();
-            }
-
-            function handleFileUpload(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                if (file.size > 200 * 1024) { 
-                    showToast('File too large for demo server (Max 200KB)', 'error');
-                    inputs.file.value = '';
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    const result = evt.target.result;
-                    let type = 'file';
-                    if (file.type.startsWith('image/')) type = 'image';
-                    else if (file.type.startsWith('video/')) type = 'video';
-                    publishMessage({ type: type, content: result, fileName: file.name });
-                    inputs.file.value = ''; 
-                };
-                reader.readAsDataURL(file);
-            }
-
-            // --- OPTIMISTIC SENDING ---
-            function publishMessage(msgData) {
-                const msg = {
-                    id: Date.now().toString(36) + Math.random().toString(36).substr(2),
-                    userId: state.currentUserId,
-                    sender: state.currentUser,
-                    type: msgData.type,
-                    content: msgData.content,
-                    fileName: msgData.fileName || '',
-                    timestamp: Date.now(),
-                    isDeleted: false
-                };
-                
-                // Show locally immediately
-                state.messages.push(msg);
-                renderMessages();
-
-                // Send to others
-                broadcast({ action: 'new_msg', payload: msg });
-            }
-
-            function handleDeleteClick(msgId) {
-                if(state.isHost) {
-                    state.messages = state.messages.filter(m => m.id !== msgId);
-                    renderMessages();
-                    broadcast({ action: 'hard_delete', targetId: msgId });
-                } else {
-                    const msg = state.messages.find(m => m.id === msgId);
-                    if(msg) { msg.isDeleted = true; renderMessages(); }
-                    broadcast({ action: 'soft_delete', targetId: msgId });
-                }
-            }
-
-            // --- Media & Recording ---
-            async function toggleRecording() {
-                if (!state.isRecording) startRecording();
-                else stopRecording(true);
-            }
-
-            async function startRecording() {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    state.mediaRecorder = new MediaRecorder(stream);
-                    state.audioChunks = [];
-                    state.mediaRecorder.ondataavailable = (event) => state.audioChunks.push(event.data);
-                    state.mediaRecorder.start();
-                    state.isRecording = true;
-                    state.recordingStartTime = Date.now();
-                    display.footer.classList.add('recording-mode');
-                    display.recTimer.textContent = "00:00";
-                    state.timerInterval = setInterval(updateTimer, 1000);
-                } catch (err) { showToast('Microphone access denied.', 'error'); }
-            }
-
-            function stopRecording(shouldSend) {
-                if (!state.mediaRecorder || state.mediaRecorder.state === 'inactive') return;
-                state.mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(state.audioChunks, { type: 'audio/webm' });
-                    if (shouldSend) {
-                        const reader = new FileReader();
-                        reader.readAsDataURL(audioBlob);
-                        reader.onloadend = () => {
-                            if (reader.result.length > 200 * 1024) showToast('Audio too long for demo server!', 'error');
-                            else publishMessage({ type: 'audio', content: reader.result });
-                        };
-                    }
-                    state.mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                };
-                state.mediaRecorder.stop();
-                resetRecordingUI();
-            }
-
-            function cancelRecording() {
-                if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
-                    state.mediaRecorder.onstop = null;
-                    state.mediaRecorder.stop();
-                    state.mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                }
-                resetRecordingUI();
-            }
-
-            function resetRecordingUI() {
-                state.isRecording = false;
-                clearInterval(state.timerInterval);
-                display.footer.classList.remove('recording-mode');
-                state.audioChunks = [];
-            }
-
-            function updateTimer() {
-                const diff = Math.floor((Date.now() - state.recordingStartTime) / 1000);
-                const m = Math.floor(diff / 60).toString().padStart(2, '0');
-                const s = (diff % 60).toString().padStart(2, '0');
-                display.recTimer.textContent = `${m}:${s}`;
-            }
-
-            function scrollToBottom() {
-                display.chatArea.scrollTo({ top: display.chatArea.scrollHeight, behavior: 'smooth' });
-            }
-
-            function addSystemMessage(text) {
-                const div = document.createElement('div');
-                div.className = 'system-message';
-                div.textContent = text;
-                display.chatArea.appendChild(div);
-                scrollToBottom();
-            }
-
-            function renderMessages() {
-                display.chatArea.innerHTML = '';
-                if (state.messages.length === 0) {
-                    display.chatArea.innerHTML = '<div class="empty-state">Online Chat Ready.<br>Share code to invite others!</div>';
-                    return;
+                if(data.cmd === 'onlineSet') {
+                    addSystemMessage(`You joined channel ${state.chatId}`);
                 }
                 
-                state.messages.forEach(msg => {
-                    const isSelf = msg.userId === state.currentUserId;
-                    const wrapper = document.createElement('div');
-                    wrapper.className = `message ${isSelf ? 'self' : 'other'}`;
-                    const senderHtml = isSelf ? '' : `<div class="sender-info">${escapeHtml(msg.sender)}</div>`;
-                    
-                    let contentHtml = '';
-                    
-                    if (msg.isDeleted) {
-                        if (state.isHost) {
-                            contentHtml = `<div class="host-view-deleted"><span class="host-deleted-label">(User deleted this)</span>${getContentHtml(msg)}</div>`;
-                        } else {
-                            contentHtml = `<span class="deleted-text"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg> This message was deleted</span>`;
-                        }
-                    } else {
-                        contentHtml = getContentHtml(msg);
-                    }
-
-                    let deleteBtn = '';
-                    if (state.isHost || (isSelf && !msg.isDeleted)) {
-                        deleteBtn = `
-                            <button class="btn-delete-msg" data-id="${msg.id}" title="${state.isHost ? 'Delete Permanently' : 'Delete Message'}">
-                                <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                            </button>
-                        `;
-                    }
-
-                    wrapper.innerHTML = `
-                        ${senderHtml}
-                        <div class="bubble">
-                            ${contentHtml}
-                            <div class="meta-row">
-                                <span class="timestamp">${formatTime(msg.timestamp)}</span>
-                                ${deleteBtn}
-                            </div>
-                        </div>
-                    `;
-                    display.chatArea.appendChild(wrapper);
-                });
-                
-                scrollToBottom();
-                const mediaItems = display.chatArea.querySelectorAll('img, video');
-                mediaItems.forEach(item => { item.onload = scrollToBottom; item.onloadeddata = scrollToBottom; });
-            }
-
-            function getContentHtml(msg) {
-                if (msg.type === 'audio') return `<audio controls src="${msg.content}" class="audio-player"></audio>`;
-                else if (msg.type === 'image') return `<img src="${msg.content}" class="chat-media-img" onclick="window.open(this.src)">`;
-                else if (msg.type === 'video') return `<video src="${msg.content}" controls class="chat-media-video"></video>`;
-                else if (msg.type === 'file') return `<a href="${msg.content}" download="${msg.fileName}" class="file-card"><svg class="file-icon" viewBox="0 0 24 24" fill="white"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg><span class="file-name">${escapeHtml(msg.fileName)}</span></a>`;
-                else return escapeHtml(msg.content);
-            }
-
-            function formatTime(ts) { return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
-            function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
-            
-            function showToast(message, type = 'success') {
-                const toast = document.createElement('div');
-                toast.className = `toast ${type}`;
-                const icon = type === 'success' ? '✓' : '⚠';
-                toast.innerHTML = `<span>${icon} ${message}</span>`;
-                display.toastContainer.appendChild(toast);
-                setTimeout(() => {
-                    toast.style.animation = 'fadeOut 0.3s forwards';
-                    setTimeout(() => { if(toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
-                }, 3000);
-            }
-        });
-    </script>
-</body>
-</html>
+                if(data.cmd === 'chat') {
+                    // Check if it's a special protocol message from our app
+                    try {
+                        // Hack.chat sends text. If we sent JSON object inside text, we parse it.
+                        // Our protocol: "ARYA_JSON::" + JSON string
+                        if(data.text && data.text.startsWith('ARYA_JSON::')) {
+                            const payload = JSON.parse(data.text.replace('ARYA_JSON::',
