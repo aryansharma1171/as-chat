@@ -152,7 +152,7 @@
             justify-self: end; width: fit-content;
             background: transparent; color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3);
             padding: 0.35rem 0.8rem; font-size: 0.8rem; border-radius: 6px; cursor: pointer; transition: 0.2s;
-            display: flex; align-items: center; gap: 4px; margin-right: 20px; /* Space for dot */
+            display: flex; align-items: center; gap: 4px; margin-right: 20px;
         }
         .btn-leave:hover { background: rgba(248, 113, 113, 0.1); border-color: #f87171; }
 
@@ -163,6 +163,13 @@
             background: var(--bg-chat-area);
             -webkit-overflow-scrolling: touch; 
             scroll-behavior: smooth;
+        }
+
+        /* System Messages */
+        .system-message {
+            text-align: center; font-size: 0.75rem; color: var(--text-muted); 
+            background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 20px;
+            align-self: center; margin: 5px 0;
         }
 
         /* --- Chat Footer --- */
@@ -323,7 +330,7 @@
                 </div>
                 <div style="position:relative; display:flex; align-items:center;">
                     <button id="btn-leave" class="btn btn-leave">Leave</button>
-                    <div id="status-dot" class="status-dot"></div>
+                    <div id="status-dot" class="status-dot" title="Connection Status"></div>
                 </div>
             </div>
 
@@ -401,7 +408,7 @@
             });
 
             if(buttons.join) buttons.join.addEventListener('click', () => {
-                const code = inputs.joinCode.value.trim();
+                const code = inputs.joinCode.value.trim().toUpperCase();
                 const name = inputs.joinName.value.trim();
                 if (!code) return showToast('Please enter a Chat ID', 'error');
                 if (!name) return showToast('Please enter your name', 'error');
@@ -423,43 +430,51 @@
 
             // --- Core Functions ---
             function enterChat(chatId, username, isHost) {
-                state.chatId = chatId; state.currentUser = username; state.isHost = isHost;
-                views.home.classList.add('hidden'); views.chat.classList.remove('hidden');
+                state.chatId = chatId; 
+                state.currentUser = username;
+                state.isHost = isHost;
+                
+                views.home.classList.add('hidden'); 
+                views.chat.classList.remove('hidden');
                 display.code.textContent = chatId;
+                
                 connectWebSocket(chatId);
+                
                 if (isHost) showToast(`Chat created! Code: ${chatId}`, 'success');
                 else showToast(`Joined chat ${chatId}`, 'success');
+                
                 setTimeout(() => inputs.message.focus(), 100);
             }
 
             function connectWebSocket(chatId) {
-                const apiKey = 'VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9VRiaV'; // Free PieSocket Demo Key
-                // Added notify_self=1 so broadcast sends back to us too (as double check)
+                // Using PieSocket Free Demo
+                const apiKey = 'VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9VRiaV'; 
                 const url = `wss://demo.piesocket.com/v3/${chatId}?api_key=${apiKey}&notify_self=1`;
                 
                 state.socket = new WebSocket(url);
                 
                 state.socket.onopen = () => {
                     document.body.classList.add('connected');
-                    showToast('Connected to online server', 'success');
+                    addSystemMessage(`You joined the chat.`);
                 };
                 
                 state.socket.onmessage = (event) => {
                     try {
                         const data = JSON.parse(event.data);
                         handleIncomingMessage(data);
-                    } catch(e) { console.log("Non-JSON message", event.data); }
+                    } catch(e) { console.log("Non-JSON", event.data); }
                 };
 
                 state.socket.onclose = () => {
                     document.body.classList.remove('connected');
+                    addSystemMessage(`Disconnected. Reconnecting...`);
                     setTimeout(() => { if(state.chatId) connectWebSocket(state.chatId); }, 3000);
                 };
             }
 
             function handleIncomingMessage(data) {
                 if(data.action === 'new_msg') {
-                    // Check for duplicates (if we optimistically added it already)
+                    // prevent duplicate if optimistic UI already added it
                     const exists = state.messages.find(m => m.id === data.payload.id);
                     if(!exists) {
                         state.messages.push(data.payload);
@@ -520,7 +535,7 @@
                 reader.readAsDataURL(file);
             }
 
-            // --- THE FIX: OPTIMISTIC SENDING ---
+            // --- OPTIMISTIC SENDING ---
             function publishMessage(msgData) {
                 const msg = {
                     id: Date.now().toString(36) + Math.random().toString(36).substr(2),
@@ -533,11 +548,11 @@
                     isDeleted: false
                 };
                 
-                // 1. Add locally IMMEDIATELY so user sees it
+                // Show locally immediately
                 state.messages.push(msg);
                 renderMessages();
 
-                // 2. Broadcast to others
+                // Send to others
                 broadcast({ action: 'new_msg', payload: msg });
             }
 
@@ -617,6 +632,14 @@
 
             function scrollToBottom() {
                 display.chatArea.scrollTo({ top: display.chatArea.scrollHeight, behavior: 'smooth' });
+            }
+
+            function addSystemMessage(text) {
+                const div = document.createElement('div');
+                div.className = 'system-message';
+                div.textContent = text;
+                display.chatArea.appendChild(div);
+                scrollToBottom();
             }
 
             function renderMessages() {
