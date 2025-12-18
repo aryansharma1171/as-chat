@@ -242,6 +242,7 @@
         .meta-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 4px; }
         .timestamp { font-size: 0.65rem; opacity: 0.7; }
 
+        /* Delete Button */
         .btn-delete-msg {
             background: transparent; border: none; cursor: pointer; padding: 2px;
             opacity: 0.6; transition: 0.2s; display: flex; align-items: center;
@@ -250,6 +251,11 @@
         .btn-delete-msg svg { width: 14px; height: 14px; fill: currentColor; }
         .message.self .btn-delete-msg { color: white; }
         .message.other .btn-delete-msg { color: #ef4444; }
+
+        /* Deleted Text Placeholder */
+        .deleted-text { font-style: italic; opacity: 0.7; font-size: 0.95rem; display: flex; align-items: center; gap: 5px; }
+        .host-view-deleted { opacity: 0.5; border-left: 2px solid #ef4444; padding-left: 8px; margin-bottom: 4px; }
+        .host-deleted-label { font-size: 0.7rem; color: #ef4444; font-weight: bold; display: block; margin-bottom: 2px; }
 
         /* --- Toasts --- */
         #toast-container {
@@ -419,20 +425,15 @@
             buttons.send.addEventListener('click', handleSendClick);
             inputs.message.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendClick(); });
             
-            // Audio Recording
             buttons.mic.addEventListener('click', toggleRecording);
             buttons.cancelRec.addEventListener('click', cancelRecording);
-
-            // File Attachment
+            
             buttons.attach.addEventListener('click', () => inputs.file.click());
             inputs.file.addEventListener('change', handleFileUpload);
 
-            // Delete delegation
             display.chatArea.addEventListener('click', (e) => {
                 const btn = e.target.closest('.btn-delete-msg');
-                if(btn) {
-                    deleteMessage(btn.dataset.id);
-                }
+                if(btn) deleteMessage(btn.dataset.id);
             });
 
             window.addEventListener('storage', (e) => {
@@ -461,7 +462,6 @@
                 views.chat.classList.add('hidden'); views.home.classList.remove('hidden');
             }
 
-            // --- Messaging Logic ---
             function handleSendClick() {
                 if (state.isRecording) stopRecording(true);
                 else sendMessage();
@@ -474,6 +474,26 @@
                 inputs.message.value = ''; inputs.message.focus();
             }
 
+            function handleFileUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast('File too large (Max 2MB)', 'error');
+                    inputs.file.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const result = evt.target.result;
+                    let type = 'file';
+                    if (file.type.startsWith('image/')) type = 'image';
+                    else if (file.type.startsWith('video/')) type = 'video';
+                    saveMessageToState({ type: type, content: result, fileName: file.name });
+                    inputs.file.value = ''; 
+                };
+                reader.readAsDataURL(file);
+            }
+
             function saveMessageToState(msgData) {
                 const msg = {
                     id: Date.now().toString(36) + Math.random().toString(36).substr(2),
@@ -482,47 +502,33 @@
                     type: msgData.type,
                     content: msgData.content,
                     fileName: msgData.fileName || '',
-                    timestamp: Date.now()
+                    timestamp: Date.now(),
+                    isDeleted: false
                 };
                 state.messages.push(msg);
                 saveMessages(); renderMessages();
             }
 
-            // --- File Upload Logic ---
-            function handleFileUpload(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                // Limit: 2MB (Strict due to LocalStorage constraints)
-                if (file.size > 2 * 1024 * 1024) {
-                    showToast('File too large (Max 2MB)', 'error');
-                    inputs.file.value = '';
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    const result = evt.target.result;
-                    let type = 'file';
-                    
-                    if (file.type.startsWith('image/')) type = 'image';
-                    else if (file.type.startsWith('video/')) type = 'video';
-                    
-                    saveMessageToState({ type: type, content: result, fileName: file.name });
-                    inputs.file.value = ''; // Reset input
-                };
-                reader.readAsDataURL(file);
-            }
-
-            // --- Delete Logic ---
+            // --- DELETE LOGIC (UPDATED) ---
             function deleteMessage(msgId) {
-                state.messages = state.messages.filter(m => m.id !== msgId);
+                const amIHost = SafeSession.getItem(`host_status_${state.chatId}`) === 'true';
+                
+                if (amIHost) {
+                    // HOST: Hard Delete (Remove Completely)
+                    state.messages = state.messages.filter(m => m.id !== msgId);
+                    showToast("Message permanently deleted");
+                } else {
+                    // USER: Soft Delete (Hide Content)
+                    const msgIndex = state.messages.findIndex(m => m.id === msgId);
+                    if(msgIndex !== -1) {
+                        state.messages[msgIndex].isDeleted = true;
+                        showToast("Message deleted");
+                    }
+                }
                 saveMessages();
                 renderMessages();
-                showToast("Message deleted");
             }
 
-            // --- Recording Logic ---
             async function toggleRecording() {
                 if (!state.isRecording) startRecording();
                 else stopRecording(true);
@@ -586,7 +592,6 @@
                 display.recTimer.textContent = `${m}:${s}`;
             }
 
-            // --- Render & Storage ---
             function saveMessages() {
                 if (!state.chatId) return;
                 SafeStorage.setItem(`chat_history_${state.chatId}`, JSON.stringify(state.messages));
@@ -615,31 +620,23 @@
                     const senderHtml = isSelf ? '' : `<div class="sender-info">${escapeHtml(msg.sender)}</div>`;
                     
                     let contentHtml = '';
-                    // CONTENT RENDERING LOGIC
-                    if (msg.type === 'audio') {
-                        contentHtml = `<audio controls src="${msg.content}" class="audio-player"></audio>`;
-                    } 
-                    else if (msg.type === 'image') {
-                        contentHtml = `<img src="${msg.content}" class="chat-media-img" onclick="window.open(this.src)">`;
-                    }
-                    else if (msg.type === 'video') {
-                        contentHtml = `<video src="${msg.content}" controls class="chat-media-video"></video>`;
-                    }
-                    else if (msg.type === 'file') {
-                        contentHtml = `
-                            <a href="${msg.content}" download="${msg.fileName}" class="file-card">
-                                <svg class="file-icon" viewBox="0 0 24 24" fill="white"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-                                <span class="file-name">${escapeHtml(msg.fileName)}</span>
-                            </a>
-                        `;
-                    }
-                    else {
-                        contentHtml = escapeHtml(msg.content);
+                    
+                    if (msg.isDeleted) {
+                        if (amIHost) {
+                            // Host sees deleted msg (soft)
+                            contentHtml = `<div class="host-view-deleted"><span class="host-deleted-label">(User deleted this)</span>${getContentHtml(msg)}</div>`;
+                        } else {
+                            // User sees deleted placeholder
+                            contentHtml = `<span class="deleted-text"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg> This message was deleted</span>`;
+                        }
+                    } else {
+                        contentHtml = getContentHtml(msg);
                     }
 
-                    // Delete Logic
+                    // Delete Button Logic
+                    // Host can always delete (Hard Delete). User can delete own if not already deleted (Soft Delete).
                     let deleteBtn = '';
-                    if (isSelf || amIHost) {
+                    if (amIHost || (isSelf && !msg.isDeleted)) {
                         deleteBtn = `
                             <button class="btn-delete-msg" data-id="${msg.id}" title="Delete Message">
                                 <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
@@ -660,6 +657,29 @@
                     display.chatArea.appendChild(wrapper);
                 });
                 display.chatArea.scrollTop = display.chatArea.scrollHeight;
+            }
+
+            function getContentHtml(msg) {
+                if (msg.type === 'audio') {
+                    return `<audio controls src="${msg.content}" class="audio-player"></audio>`;
+                } 
+                else if (msg.type === 'image') {
+                    return `<img src="${msg.content}" class="chat-media-img" onclick="window.open(this.src)">`;
+                }
+                else if (msg.type === 'video') {
+                    return `<video src="${msg.content}" controls class="chat-media-video"></video>`;
+                }
+                else if (msg.type === 'file') {
+                    return `
+                        <a href="${msg.content}" download="${msg.fileName}" class="file-card">
+                            <svg class="file-icon" viewBox="0 0 24 24" fill="white"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                            <span class="file-name">${escapeHtml(msg.fileName)}</span>
+                        </a>
+                    `;
+                }
+                else {
+                    return escapeHtml(msg.content);
+                }
             }
 
             function formatTime(ts) { return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
